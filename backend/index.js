@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(cors());
 
 // database connection with MongoDB
-const MONGO_URL = 'mongodb://127.0.0.1:27017/Ecommerce';
+const MONGO_URL = 'mongodb+srv://arbazahmad363:arbaz%40123@cluster0.mdsoq.mongodb.net/NK-SONSS';
 
 // Database connection
 async function main() {
