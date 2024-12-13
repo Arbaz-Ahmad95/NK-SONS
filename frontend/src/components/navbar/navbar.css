@@ -1,0 +1,215 @@
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    box-shadow: 0 1px 3px -2px black;
+    position: relative;
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-dropdown {
+    display: none;
+    cursor: pointer;
+    width: 30px;
+    transition: 0.5s;
+}
+
+/* Menu styles */
+.nav-menu {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    gap: 50px;
+    color: #626262;
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.nav-menu li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    
+}
+.nav-menu li a {
+    text-decoration: none; /* Removes underline */
+    color: inherit; /* Uses the parent element's color */
+}
+
+.nav-menu hr {
+    border: none;
+    width: 80%;
+    height: 3px;
+    border-radius: 10px;
+    background: #ff4141;
+}
+
+/* Login and Cart styles */
+.nav-login-cart {
+    display: flex;
+    align-items: center;
+    gap: 45px;
+}
+
+.nav-login-cart button {
+    width: 140px;
+    height: 40px;
+    outline: none;
+    border: 1px solid #7a7a7a;
+    border-radius: 75px;
+    color: #515151;
+    font-size: 20px;
+    font-weight: 500;
+    background: white;
+    cursor: pointer;
+}
+
+.nav-cart-count {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -35px;
+    margin-left: -55px;
+    border-radius: 11px;
+    font-size: 14px;
+    background-color: red;
+    color: white;
+}
+/* for  responsive */
+@media(max-width:1280px){
+    .navbar{
+        padding: 12px 50px;
+    }
+    .nav-logo img{
+        width: 40px;
+    }
+    .nav-logo p{
+        font-size: 25px;
+    }
+    .nav-menu{
+        gap: 30px;
+        font-size: 16px;
+    }
+    .nav-login-cart{
+        gap: 30px;
+    }
+    .nav-login-cart button{
+        width: 120px;
+        height: 45px;
+        font-size: 16px;
+
+
+    }
+    .nav-cart-count{
+        margin-left: -40px;
+        font-size: 12px;
+        width: 22px;
+    
+    }
+    
+}
+
+@media(max-width:1024){
+      .navbar{
+        padding: 12px 30px;
+
+      }
+      .nav-menu{
+        gap: 25px;
+        font-size: 14px;
+    }
+    .nav-login-cart button{
+        width: 80px;
+        height: 35px;
+        font-size: 14px;
+
+
+    }
+    .nav-login-cart img{
+        width: 30px;
+    }
+    .nav-cart-count{
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 800px) {
+    .navbar {
+        padding: 12px 15px; /* Reduced padding for better fit */
+        justify-content: space-between;
+    }
+
+    .nav-logo {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px; /* Slightly smaller gap */
+    }
+
+    .nav-logo img {
+        
+        width: 35px; /* Reduce logo size for smaller screens */
+    }
+
+    .nav-logo p {
+        font-size: 20px; /* Adjust font size for the brand name */
+    }
+
+    .nav-login-cart {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px; /* Reduced gap between elements */
+    }
+
+    .nav-login-cart button {
+        width: 100px; /* Smaller button width */
+        height: 30px; /* Adjusted height */
+        font-size: 14px; /* Smaller font for login button */
+    }
+
+    .nav-dropdown {
+        display: block; /* Ensure dropdown is visible */
+        width: 25px; /* Adjust size for smaller screens */
+        margin-right: 10px;
+    }
+
+    .nav-menu {
+        display: none;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        background-color: white;
+        padding: 10px 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 10;
+    }
+
+    .nav-menu-visible {
+        display: flex;
+    }
+
+    .nav-menu li {
+        margin: 10px 0;
+        width: 100%;
+    }
+
+    .nav-dropdown.open {
+        transform: rotate(90deg);
+    }
+}

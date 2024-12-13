@@ -1,0 +1,126 @@
+.newcollections{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  margin-bottom: 100px;
+}
+.newcollection h1{
+    color: #171717;
+    font-size: 50px;
+    font-weight: 600;
+}
+.newcollections hr{
+    width: 200px;
+    height: 6px;
+    border-radius: 10px;
+    background: #252525;
+}
+.collections {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    margin-top: 50px;
+    gap: 30px;
+}
+.product-card p{
+    margin: 6px 0px;
+}
+.item-prices{
+    display: flex;
+    gap: 20px;
+}
+.new-price{
+   color: #374151;
+   font-size: 18px;
+   font-weight: 600;
+}
+.old-price{
+    color: #8c8c8c;
+    font-size: 18px;
+    font-weight: 500;
+    text-decoration: line-through;
+}
+.item:hover{
+    transform: scale(1.05);
+    transition: 0.6s;
+}
+
+/* for responsive  */
+
+/* Default styles for large screens (desktop) */
+
+/* For extra large screens (above 1200px) */
+@media (min-width: 1200px) {
+    .newcollections {
+      gap: 20px;
+    }
+    .newcollection h1 {
+      font-size: 60px;
+    }
+    .collections {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+    }
+  }
+  
+  /* For large screens (between 992px and 1200px) */
+  @media (max-width: 1199px) and (min-width: 992px) {
+    .newcollections {
+      gap: 15px;
+    }
+    .newcollection h1 {
+      font-size: 55px;
+    }
+    .collections {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 30px;
+    }
+  }
+  
+  /* For medium screens (between 768px and 991px) */
+  @media (max-width: 991px) and (min-width: 768px) {
+    .newcollections {
+      gap: 10px;
+    }
+    .newcollection h1 {
+      font-size: 45px;
+    }
+    .collections {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+  }
+  
+  /* For small screens (below 768px) */
+  @media (max-width: 767px) {
+    .newcollections {
+      gap: 8px;
+    }
+    .newcollection h1 {
+      font-size: 35px;
+    }
+    .collections {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
+  }
+  
+  /* For extra small screens (below 576px) */
+  @media (max-width: 575px) {
+    .newcollection h1 {
+      font-size: 28px;
+    }
+    .collections {
+      grid-template-columns: 1fr 1fr ;
+      gap: 10px;
+    }
+    .newcollections hr {
+      width: 150px;
+      height: 4px;
+    }
+    .item-prices {
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+  

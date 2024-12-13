@@ -1,0 +1,83 @@
+*{
+  margin: 0;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: 'poppins';
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+
+/* for also  */
+
+/* Default styles */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: 'Source Code Pro', Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Responsive Adjustments */
+
+/* For devices larger than 1200px (large screens) */
+@media (min-width: 1200px) {
+  body {
+    font-size: 18px; /* Adjust body text size for larger screens */
+  }
+}
+
+/* For medium devices (between 992px and 1200px) */
+@media (max-width: 1199px) and (min-width: 992px) {
+  body {
+    font-size: 16px; /* Adjust text size */
+  }
+}
+
+/* For tablets (between 768px and 991px) */
+@media (max-width: 991px) and (min-width: 768px) {
+  body {
+    font-size: 14px; /* Reduce text size for tablets */
+  }
+  code {
+    font-size: 14px; /* Adjust code font size for better readability */
+  }
+}
+
+/* For mobile devices (below 768px) */
+@media (max-width: 767px) {
+  body {
+    font-size: 12px; /* Adjust text size for smaller screens */
+  }
+  code {
+    font-size: 12px; /* Adjust code font size */
+  }
+}
+
+/* For extra small devices (below 576px) */
+@media (max-width: 575px) {
+  body {
+    font-size: 11px; /* Smaller text for extra small devices */
+  }
+  code {
+    font-size: 11px; /* Adjust code font size */
+  }
+}
