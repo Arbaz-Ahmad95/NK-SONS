@@ -1,23 +1,23 @@
 require('dotenv').config(); // Load environment variables
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const multer = require('multer');
+const multer = require("multer");
 const jwt = require("jsonwebtoken");
-const path = require('path');
+const path = require("path");
 
 const app = express();
 const port = process.env.PORT || 4000;
 const MONGO_URL = process.env.MONGO_URL;
 const JWT_SECRET = process.env.JWT_SECRET;
 const CLIENT_URL = process.env.CLIENT_URL || "*";
+const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${port}`;
 
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: CLIENT_URL, // Use client URL if provided
-  credentials: true
+  origin: CLIENT_URL,
+  credentials: true,
 }));
 
 // Database connection
@@ -34,20 +34,44 @@ main()
     console.error("DB Connection Error:", err);
   });
 
-// Image Storage Engine for multer (use memory storage for Vercel serverless)
-const storage = multer.memoryStorage(); // Use memory storage for Vercel serverless (No filesystem access)
+// Multer configuration
+const storage = multer.memoryStorage(); // Use memory storage for Vercel (no file system access)
 const upload = multer({ storage: storage });
 
-// Serve uploaded images via the API
-app.post("/upload", upload.single('product'), (req, res) => {
-  // In a production environment, you would upload this to a cloud storage like S3
-  res.json({
-    success: 1,
-    image_url: `http://localhost:${port}/images/${req.file.filename}`
+// Serve static files locally (only for development)
+app.use('/images', express.static(path.join(__dirname, 'uploads')));
+
+// Image upload endpoint
+app.post("/upload", upload.single("product"), (req, res) => {
+  // For development (using local storage):
+  if (!process.env.CLOUDINARY_NAME) {
+    return res.json({
+      success: 1,
+      image_url: `${BACKEND_URL}/images/${req.file.filename}`,
+    });
+  }
+
+  // For production (using cloud storage like Cloudinary):
+  const cloudinary = require("cloudinary").v2;
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
   });
+
+  cloudinary.uploader.upload_stream(
+    { folder: "ecommerce-images" },
+    (error, result) => {
+      if (error) {
+        console.error("Cloudinary Error:", error);
+        return res.status(500).json({ success: 0, message: error.message });
+      }
+      res.json({ success: 1, image_url: result.secure_url });
+    }
+  ).end(req.file.buffer);
 });
 
-// Models (Product, User, etc.)
+// Models
 const Product = mongoose.model("Product", {
   id: { type: Number, required: true },
   name: { type: String, required: true },
@@ -59,7 +83,7 @@ const Product = mongoose.model("Product", {
   available: { type: Boolean, default: true },
 });
 
-const Users = mongoose.model('Users', {
+const Users = mongoose.model("Users", {
   name: { type: String },
   email: { type: String, unique: true },
   password: { type: String },
@@ -70,7 +94,7 @@ const Users = mongoose.model('Users', {
 // Routes
 
 // Add Product
-app.post('/addproduct', async (req, res) => {
+app.post("/addproduct", async (req, res) => {
   let products = await Product.find({});
   let id = products.length > 0 ? products.slice(-1)[0].id + 1 : 1;
 
@@ -88,13 +112,13 @@ app.post('/addproduct', async (req, res) => {
 });
 
 // Remove Product
-app.post('/removeproduct', async (req, res) => {
+app.post("/removeproduct", async (req, res) => {
   await Product.findOneAndDelete({ id: req.body.id });
   res.json({ success: true });
 });
 
 // Get All Products
-app.get('/allproducts', async (req, res) => {
+app.get("/allproducts", async (req, res) => {
   try {
     const products = await Product.find({});
     res.json({ success: true, products });
@@ -104,7 +128,7 @@ app.get('/allproducts', async (req, res) => {
 });
 
 // User Signup
-app.post('/signup', async (req, res) => {
+app.post("/signup", async (req, res) => {
   const check = await Users.findOne({ email: req.body.email });
   if (check) {
     return res.status(400).json({ success: false, errors: "Existing user found with the same email" });
@@ -126,7 +150,7 @@ app.post('/signup', async (req, res) => {
 });
 
 // User Login
-app.post('/login', async (req, res) => {
+app.post("/login", async (req, res) => {
   const user = await Users.findOne({ email: req.body.email });
   if (!user) return res.json({ success: false, errors: "Wrong Email ID" });
 
@@ -139,7 +163,7 @@ app.post('/login', async (req, res) => {
 
 // Middleware to Fetch User
 const fetchUser = async (req, res, next) => {
-  const token = req.header('auth-token');
+  const token = req.header("auth-token");
   if (!token) return res.status(401).send({ errors: "Please authenticate using a valid token" });
 
   try {
@@ -152,7 +176,7 @@ const fetchUser = async (req, res, next) => {
 };
 
 // Add to Cart
-app.post('/addtocart', fetchUser, async (req, res) => {
+app.post("/addtocart", fetchUser, async (req, res) => {
   let userData = await Users.findOne({ _id: req.user.id });
   userData.cartData[req.body.itemId] += 1;
   await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userData.cartData });
@@ -160,7 +184,7 @@ app.post('/addtocart', fetchUser, async (req, res) => {
 });
 
 // Remove from Cart
-app.post('/removefromcart', fetchUser, async (req, res) => {
+app.post("/removefromcart", fetchUser, async (req, res) => {
   let userData = await Users.findOne({ _id: req.user.id });
   if (userData.cartData[req.body.itemId] > 0) userData.cartData[req.body.itemId] -= 1;
   await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userData.cartData });
@@ -168,7 +192,7 @@ app.post('/removefromcart', fetchUser, async (req, res) => {
 });
 
 // Get Cart
-app.post('/getcart', fetchUser, async (req, res) => {
+app.post("/getcart", fetchUser, async (req, res) => {
   const userData = await Users.findOne({ _id: req.user.id });
   res.json(userData.cartData);
 });
@@ -178,4 +202,3 @@ app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).send("Something went wrong!");
 });
-
