@@ -34,42 +34,40 @@ main()
     console.error("DB Connection Error:", err);
   });
 
-// Multer configuration
-const storage = multer.memoryStorage(); // Use memory storage for Vercel (no file system access)
+// Multer configuration for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // Save uploaded files in 'uploads' folder
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename for each image
+  }
+});
 const upload = multer({ storage: storage });
 
-// Serve static files locally (only for development)
+// Serve static files locally (for images)
 app.use('/images', express.static(path.join(__dirname, 'uploads')));
 
-// Image upload endpoint
+// Image upload endpoint (For development - save images locally)
 app.post("/upload", upload.single("product"), (req, res) => {
-  // For development (using local storage):
-  if (!process.env.CLOUDINARY_NAME) {
-    return res.json({
-      success: 1,
-      image_url: `${BACKEND_URL}/images/${req.file.filename}`,
-    });
+  if (!req.file) {
+    return res.status(400).json({ success: 0, message: "No file uploaded" });
   }
 
-  // For production (using cloud storage like Cloudinary):
-  const cloudinary = require("cloudinary").v2;
+  // Return image URL for local development
+  const imageUrl = `${BACKEND_URL}/images/${req.file.filename}`;
+  res.json({ success: 1, image_url: imageUrl });
+});
+
+// Cloudinary configuration for production
+const cloudinary = require("cloudinary").v2;
+if (process.env.CLOUDINARY_NAME) {
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
-
-  cloudinary.uploader.upload_stream(
-    { folder: "ecommerce-images" },
-    (error, result) => {
-      if (error) {
-        console.error("Cloudinary Error:", error);
-        return res.status(500).json({ success: 0, message: error.message });
-      }
-      res.json({ success: 1, image_url: result.secure_url });
-    }
-  ).end(req.file.buffer);
-});
+}
 
 // Models
 const Product = mongoose.model("Product", {
@@ -95,26 +93,35 @@ const Users = mongoose.model("Users", {
 
 // Add Product
 app.post("/addproduct", async (req, res) => {
-  let products = await Product.find({});
-  let id = products.length > 0 ? products.slice(-1)[0].id + 1 : 1;
+  try {
+    const products = await Product.find({});
+    const id = products.length > 0 ? products.slice(-1)[0].id + 1 : 1;
 
-  const product = new Product({
-    id,
-    name: req.body.name,
-    image: req.body.image,
-    category: req.body.category,
-    new_price: req.body.new_price,
-    old_price: req.body.old_price,
-  });
+    const product = new Product({
+      id,
+      name: req.body.name,
+      image: req.body.image,
+      category: req.body.category,
+      new_price: req.body.new_price,
+      old_price: req.body.old_price,
+    });
 
-  await product.save();
-  res.json({ success: true, name: req.body.name });
+    await product.save();
+    res.json({ success: true, product });
+  } catch (error) {
+    console.error("Error adding product:", error);
+    res.status(500).json({ success: false, message: "Error adding product" });
+  }
 });
 
 // Remove Product
 app.post("/removeproduct", async (req, res) => {
-  await Product.findOneAndDelete({ id: req.body.id });
-  res.json({ success: true });
+  try {
+    await Product.findOneAndDelete({ id: req.body.id });
+    res.json({ success: true, message: "Product removed successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error removing product" });
+  }
 });
 
 // Get All Products
@@ -129,36 +136,46 @@ app.get("/allproducts", async (req, res) => {
 
 // User Signup
 app.post("/signup", async (req, res) => {
-  const check = await Users.findOne({ email: req.body.email });
-  if (check) {
-    return res.status(400).json({ success: false, errors: "Existing user found with the same email" });
+  try {
+    const check = await Users.findOne({ email: req.body.email });
+    if (check) {
+      return res.status(400).json({ success: false, errors: "Existing user found with the same email" });
+    }
+
+    let cart = {};
+    for (let i = 0; i < 300; i++) cart[i] = 0;
+
+    const user = new Users({
+      name: req.body.username,
+      email: req.body.email,
+      password: req.body.password,
+      cartData: cart,
+    });
+
+    await user.save();
+    const token = jwt.sign({ user: { id: user.id } }, JWT_SECRET);
+    res.json({ success: true, token });
+  } catch (error) {
+    console.error("Error during signup:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
-
-  let cart = {};
-  for (let i = 0; i < 300; i++) cart[i] = 0;
-
-  const user = new Users({
-    name: req.body.username,
-    email: req.body.email,
-    password: req.body.password,
-    cartData: cart,
-  });
-
-  await user.save();
-  const token = jwt.sign({ user: { id: user.id } }, JWT_SECRET);
-  res.json({ success: true, token });
 });
 
 // User Login
 app.post("/login", async (req, res) => {
-  const user = await Users.findOne({ email: req.body.email });
-  if (!user) return res.json({ success: false, errors: "Wrong Email ID" });
+  try {
+    const user = await Users.findOne({ email: req.body.email });
+    if (!user) return res.json({ success: false, errors: "Wrong Email ID" });
 
-  const passCompare = req.body.password === user.password;
-  if (!passCompare) return res.json({ success: false, errors: "Wrong Password" });
+    const passCompare = req.body.password === user.password;
+    if (!passCompare) return res.json({ success: false, errors: "Wrong Password" });
 
-  const token = jwt.sign({ user: { id: user.id } }, JWT_SECRET);
-  res.json({ success: true, token });
+    const token = jwt.sign({ user: { id: user.id } }, JWT_SECRET);
+    res.json({ success: true, token });
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
 });
 
 // Middleware to Fetch User
@@ -175,23 +192,21 @@ const fetchUser = async (req, res, next) => {
   }
 };
 
-// Add to Cart
+// Cart Operations (Add to Cart, Remove from Cart, Get Cart)
 app.post("/addtocart", fetchUser, async (req, res) => {
   let userData = await Users.findOne({ _id: req.user.id });
   userData.cartData[req.body.itemId] += 1;
   await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userData.cartData });
-  res.send("Added");
+  res.send("Added to cart");
 });
 
-// Remove from Cart
 app.post("/removefromcart", fetchUser, async (req, res) => {
   let userData = await Users.findOne({ _id: req.user.id });
   if (userData.cartData[req.body.itemId] > 0) userData.cartData[req.body.itemId] -= 1;
   await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userData.cartData });
-  res.send("Removed");
+  res.send("Removed from cart");
 });
 
-// Get Cart
 app.post("/getcart", fetchUser, async (req, res) => {
   const userData = await Users.findOne({ _id: req.user.id });
   res.json(userData.cartData);
